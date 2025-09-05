@@ -1,0 +1,3 @@
+alias c='pushd'
+alias d='popd'
+alias p='dirs -v'

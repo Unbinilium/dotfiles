@@ -1,0 +1,1 @@
+alias clear-history="echo '' > "~/.bash_history" & exec "$SHELL" -l"

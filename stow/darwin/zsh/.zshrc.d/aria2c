@@ -1,0 +1,1 @@
+alias aric2c-dl='aria2c --continue=true --max-connection-per-server=16 --split=10 --min-split-size=10M'

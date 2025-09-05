@@ -1,0 +1,8 @@
+set autoindent
+set smarthome
+set tabstospaces
+set linenumbers
+set mouse
+
+include "/opt/homebrew/share/nano/*.nanorc"
+include "/opt/homebrew/share/nano/extra/*.nanorc"

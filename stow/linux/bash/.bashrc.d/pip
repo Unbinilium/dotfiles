@@ -1,0 +1,2 @@
+alias pip-upgrade='python3 -m pip --disable-pip-version-check list --outdated --format=json | python3 -c "import json, sys; print(\"\\n\".join([x[\"name\"] for x in json.load(sys.stdin)]))" | xargs -n1 python3 -m pip install -U'
+alias pip-cleanup='rm -fr "$( python3 -m pip cache dir )"'

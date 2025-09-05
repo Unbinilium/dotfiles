@@ -1,0 +1,1 @@
+alias xcode-cleanup='rm -fr ~/Library/Developer/Xcode/DerivedData ~/Library/Developer/Xcode/UserData'

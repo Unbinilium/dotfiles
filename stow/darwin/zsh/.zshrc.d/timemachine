@@ -1,0 +1,8 @@
+tmsr () {
+    while read -r __LOCAL_SNAPSHOT_ID; do
+        if ! [[ -z "$__LOCAL_SNAPSHOT_ID" ]]; then
+            tmutil deletelocalsnapshots "$__LOCAL_SNAPSHOT_ID"
+        fi
+        unset __LOCAL_SNAPSHOT_ID
+    done <<< "$( tmutil listlocalsnapshots / | grep -Eo '[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}-[[:digit:]]{6}' )"
+}

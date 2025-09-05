@@ -1,0 +1,2 @@
+alias pe='export http_proxy=http://localhost:6152 https_proxy=http://localhost:6152 all_proxy=socks5://localhost:6153'
+alias pd='unset http_proxy https_proxy all_proxy'

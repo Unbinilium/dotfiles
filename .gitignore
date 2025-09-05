@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# SSH
+.ssh/
+
+# VSCode
+.vscode/
+
+# Logs
+*.log

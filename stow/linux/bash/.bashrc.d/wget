@@ -1,0 +1,2 @@
+alias wget-mirror='wget --mirror --convert-links --adjust-extension --page-requisites --no-parent'
+alias wget-dl='wget -c'
