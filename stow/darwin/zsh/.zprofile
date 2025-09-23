@@ -30,6 +30,11 @@ if command -v "brew" > /dev/null 2>&1; then
   export LDFLAGS="-L$(brew --prefix)/opt/llvm/lib"
   export CPPFLAGS="-I$(brew --prefix)/opt/llvm/include"
 
+  # nvm configuration
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$(brew --prefix)/opt/nvm/nvm.sh" ] && \. "$(brew --prefix)/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "$(brew --prefix)/opt/nvm/etc/bash_completion.d/nvm" ] && \. "$(brew --prefix)/opt/nvm/etc/bash_completion.d/nvm"
+
   # load zsh-completions
   ZSH_DISABLE_COMPFIX=true
   FPATH="$(brew --prefix)/share/zsh-completions:$FPATH"
