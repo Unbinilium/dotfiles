@@ -1,0 +1,7 @@
+pushd $(dirname $0)
+ssh-keygen -y -f ${HOME}/.ssh/container > authorized_keys
+chmod 600 authorized_keys
+
+popd
+container builder start --cpus 4 --memory 8g
+container build --tag dev --file container/dev/Dockerfile .
