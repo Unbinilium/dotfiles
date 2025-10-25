@@ -13,9 +13,3 @@ fd () {
 ffp () {
   find "$1" -type f -iname "*$2*"
 }
-
-fgrep () {
-  local search_pattern="$1"
-  local file_pattern="${2:-*}"
-  find . -type f -name "$file_pattern" -exec grep -H -n -i "$search_pattern" {} +
-}
