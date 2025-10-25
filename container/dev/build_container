@@ -5,3 +5,4 @@ chmod 600 authorized_keys
 popd
 container builder start --cpus 4 --memory 8g
 container build --tag dev --file container/dev/Dockerfile .
+container builder stop

@@ -47,10 +47,12 @@ RUN apt-get install -y man tmux stow jq tree python3-dev ffmpeg && \
     apt-get clean
 
 # setup rustup
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable && \
+    /root/.cargo/bin/cargo --version
 
 # setup uv toolchain
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --no-modify-path
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --no-modify-path && \
+    /root/.local/bin/uv --version
 
 # apply stow configs
 ADD stow/ /root/stow/
