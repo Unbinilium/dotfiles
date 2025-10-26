@@ -11,8 +11,8 @@ for __DIR_PATH in "$SCRIPT_DIR"/*; do
   fi
 
   if ! command -v "$( basename "$__DIR_PATH" )" > /dev/null 2>&1; then
-    echo "Error, command $( basename "$__DIR_PATH" ) not available."
-    exit 1
+    echo "Warning, command $( basename "$__DIR_PATH" ) not available."
+    continue
   fi
 
   SETUP_DIRS+=("$__DIR_PATH")
