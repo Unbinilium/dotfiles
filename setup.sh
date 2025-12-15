@@ -1,6 +1,8 @@
 
 set -o errexit -o pipefail
 
+git submodule update --init --recursive
+
 SCRIPT_DIR="$( cd -- "$( dirname -- "$0" )" &> /dev/null && pwd )"
 SETUP_DIRS=()
 
