@@ -1,4 +1,4 @@
-# .zshrc
+#!/bin/zsh
 
 # enable auto cd
 setopt AUTO_CD
