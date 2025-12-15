@@ -1,25 +1,28 @@
 
 set -o errexit -o pipefail
 
-CONTAINER_IMAGE_NAME="dev"
 CONTAINER_RUN_NAME="dev"
-CONTAINER_MEMORY_LIMIT="12g"
-CONTAINER_CPU_LIMIT="6"
+CONTAINER_PUBLISH="127.0.0.1:10022:22"
+CONTAINER_VOLUME="${HOME}/Develop:/root/dev"
+CONTAINER_MEMORY="12g"
+CONTAINER_CPUS="6"
+CONTAINER_IMAGE_NAME="dev"
 
-if container ls --format table | grep -q "^${CONTAINER_RUN_NAME}$"; then
-  echo "Container ${CONTAINER_RUN_NAME} is already running, skipping run."
-  exit 0
+if container inspect "$CONTAINER_RUN_NAME" | jq -e '. | length == 0' > /dev/null 2>&1; then
+  container run --name "$CONTAINER_RUN_NAME" \
+    --publish "$CONTAINER_PUBLISH" \
+    --volume "$CONTAINER_VOLUME" \
+    --ssh --tty --detach \
+    --memory "$CONTAINER_MEMORY" \
+    --cpus "$CONTAINER_CPUS" \
+    "$CONTAINER_IMAGE_NAME"
+else
+  echo "Container '${CONTAINER_RUN_NAME}' is already exist, skipping run."
 fi
 
-container run --name "$CONTAINER_RUN_NAME" \
-  --publish 127.0.0.1:10022:22 \
-  --volume "${HOME}/Develop:/root/dev" \
-  --ssh --tty --detach \
-  --memory "$CONTAINER_MEMORY_LIMIT" \
-  --cpus "$CONTAINER_CPU_LIMIT" \
-  "$CONTAINER_IMAGE_NAME"
-
-unset CONTAINER_IMAGE_NAME
 unset CONTAINER_RUN_NAME
-unset CONTAINER_MEMORY_LIMIT
-unset CONTAINER_CPU_LIMIT
+unset CONTAINER_PUBLISH
+unset CONTAINER_VOLUME
+unset CONTAINER_MEMORY
+unset CONTAINER_CPUS
+unset CONTAINER_IMAGE_NAME

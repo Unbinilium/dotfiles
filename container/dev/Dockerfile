@@ -11,6 +11,7 @@ RUN sed -i -e 's/^[# ]*en_US.UTF-8 UTF-8.*/en_US.UTF-8 UTF-8/' /etc/locale.gen &
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
+ENV DEBIAN_FRONTEND noninteractive
 
 # setup openssh server
 RUN apt-get install -y openssh-server openssh-client && \
@@ -45,11 +46,11 @@ RUN apt-get install -y htop iftop && \
     apt-get clean
 
 # install editors
-RUN apt-get install -y vim nano binwalk && \
+RUN apt-get install -y neovim nano binwalk && \
     apt-get clean
 
 # install commonly used packages
-RUN apt-get install -y man tmux stow jq tree python3-dev ffmpeg gh neovim && \
+RUN apt-get install -y man tmux stow jq tree python3-dev ffmpeg gh && \
     apt-get clean
 
 # setup rustup

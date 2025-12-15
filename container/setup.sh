@@ -22,5 +22,7 @@ for __DIR_PATH in "$SCRIPT_DIR"/*/; do
   )
 done
 
+container image prune
+
 unset SCRIPT_DIR
 unset __DIR_PATH
