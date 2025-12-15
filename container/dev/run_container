@@ -1,1 +1,0 @@
-container run --name dev --publish 127.0.0.1:10022:22 --volume ${HOME}/Develop:/root/dev --ssh --tty --detach --memory 12g --cpus 6 dev

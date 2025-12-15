@@ -33,11 +33,6 @@ if command -v "brew" > /dev/null 2>&1; then
   export LDFLAGS="-L$(brew --prefix)/opt/llvm/lib"
   export CPPFLAGS="-I$(brew --prefix)/opt/llvm/include"
 
-  # container configuration
-  if command -v "container" > /dev/null 2>&1; then
-    [ ! -f "$(brew --prefix)/share/zsh-completions/_container" ] && container --generate-completion-script zsh > "$(brew --prefix)/share/zsh-completions/_container"
-  fi
-
   # nvm configuration
   export NVM_DIR="$HOME/.nvm"
   [ -s "$(brew --prefix)/opt/nvm/nvm.sh" ] && \. "$(brew --prefix)/opt/nvm/nvm.sh"
@@ -45,7 +40,7 @@ if command -v "brew" > /dev/null 2>&1; then
 
   # load zsh-completions
   ZSH_DISABLE_COMPFIX=true
-  FPATH="$(brew --prefix)/share/zsh-completions:$FPATH"
+  FPATH="$(brew --prefix)/share/zsh-completions:$HOME/.zshrc.d/completions:$FPATH"
   autoload -Uz compinit
   compinit
 
