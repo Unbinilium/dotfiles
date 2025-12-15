@@ -104,7 +104,7 @@ if [[ -d "$HOME/.bashrc.d" ]]; then
 fi
 
 # start a tmux session if not already inside one
-if [[ "$TERM_PROGRAM" != "vscode" ]] && command -v "tmux" > /dev/null 2>&1; then
+if [[ -z "$SSH_CONNECTION" ]] && [[ "$TERM_PROGRAM" != "vscode" ]] && command -v "tmux" > /dev/null 2>&1; then
   if ! tmux has-session; then
     tmux
   elif [ -z "$TMUX" ]; then

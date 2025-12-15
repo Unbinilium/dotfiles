@@ -5,7 +5,6 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "$0" )" &> /dev/null && pwd )"
 
 container system start
 container system status
-container image prune
 
 if command -v "zsh" > /dev/null 2>&1; then
   echo "Generating container zsh completion script..."
