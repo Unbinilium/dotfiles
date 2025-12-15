@@ -17,7 +17,7 @@ if container inspect "$CONTAINER_RUN_NAME" | jq -e '. | length == 0' > /dev/null
     --cpus "$CONTAINER_CPUS" \
     "$CONTAINER_IMAGE_NAME"
 else
-  echo "Container '${CONTAINER_RUN_NAME}' is already exist, skipping run."
+  echo "Container '$CONTAINER_RUN_NAME' is already exist, skipping run."
 fi
 
 unset CONTAINER_RUN_NAME

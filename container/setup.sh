@@ -12,11 +12,11 @@ if command -v "zsh" > /dev/null 2>&1; then
 fi
 
 for __DIR_PATH in "$SCRIPT_DIR"/*/; do
-  if ! [[ -f "$__DIR_PATH/setup.sh" ]]; then
+  if ! [[ -f "${__DIR_PATH}setup.sh" ]]; then
       continue
   fi
   (
-      cd "$__DIR_PATH"
+      cd "${__DIR_PATH}"
       ./setup.sh && ./run.sh
   )
 done

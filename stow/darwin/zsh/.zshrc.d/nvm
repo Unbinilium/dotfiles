@@ -1,0 +1,27 @@
+__lazy_load_nvm () {
+  if [[ -n "${__NVM_LOADED-}" ]]; then
+    return
+  fi
+  unset -f npm node nvm
+  export NVM_DIR="$HOME/.nvm"
+  local __BREW_PREFIX="$(brew --prefix)"
+  [ -s "${__BREW_PREFIX}/opt/nvm/nvm.sh" ] && source "${__BREW_PREFIX}/opt/nvm/nvm.sh"
+  [ -s "${__BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && source "${__BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"
+  unset __BREW_PREFIX
+  __NVM_LOADED=1
+}
+
+npm () {
+ __lazy_load_nvm
+ npm $@
+}
+
+node () {
+  __lazy_load_nvm
+  node $@
+}
+
+nvm () {
+  __lazy_load_nvm
+  nvm $@
+}

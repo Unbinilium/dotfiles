@@ -12,23 +12,22 @@ if command -v "brew" > /dev/null 2>&1; then
   export HOMEBREW_NO_ANALYTICS=1
   export HOMEBREW_NO_INSECURE_REDIRECT=1
 
-  __BREW_PREFIX="$(brew --prefix)"
+  local __BREW_PREFIX="$(brew --prefix)"
 
   # llvm configuration
   export PATH="${__BREW_PREFIX}/opt/llvm/bin:$PATH"
   export LDFLAGS="-L${__BREW_PREFIX}/opt/llvm/lib"
   export CPPFLAGS="-I${__BREW_PREFIX}/opt/llvm/include"
 
-  # nvm configuration
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "${__BREW_PREFIX}/opt/nvm/nvm.sh" ] && \. "${__BREW_PREFIX}/opt/nvm/nvm.sh"
-  [ -s "${__BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${__BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"
-
   # load zsh-completions
   ZSH_DISABLE_COMPFIX=true
   FPATH="${__BREW_PREFIX}/share/zsh-completions:$HOME/.zshrc.d/completions:$FPATH"
   autoload -Uz compinit
-  compinit
+  if [ "$(date +'%j')" != "$(stat -f '%Sm' -t '%j' $HOME/.zcompdump 2>/dev/null)" ]; then
+    compinit
+  else
+    compinit -C
+  fi
 
   # load zsh-autosuggestions
   if [[ -f "${__BREW_PREFIX}/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
