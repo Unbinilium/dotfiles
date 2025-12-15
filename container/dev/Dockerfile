@@ -49,7 +49,7 @@ RUN apt-get install -y vim nano binwalk && \
     apt-get clean
 
 # install commonly used packages
-RUN apt-get install -y man tmux stow jq tree python3-dev ffmpeg gh && \
+RUN apt-get install -y man tmux stow jq tree python3-dev ffmpeg gh neovim && \
     apt-get clean
 
 # setup rustup
