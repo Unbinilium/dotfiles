@@ -1,3 +1,6 @@
 [submodule "stow/common/vim/.vim/pack/github/start/copilot.vim"]
 	path = stow/common/vim/.vim/pack/github/start/copilot.vim
 	url = https://github.com/github/copilot.vim.git
+[submodule "stow/common/nvim/.config/nvim/pack/nvim/start/nvim-lspconfig"]
+	path = stow/common/nvim/.config/nvim/pack/nvim/start/nvim-lspconfig
+	url = https://github.com/neovim/nvim-lspconfig
