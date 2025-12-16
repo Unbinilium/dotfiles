@@ -18,7 +18,7 @@ autoload -Uz vcs_info
 zstyle ':vcs_info:git:*' formats '[%b] '
 
 # update the prompt with the current git branch information
-precmd () {
+precmd() {
   vcs_info
 }
 setopt PROMPT_SUBST

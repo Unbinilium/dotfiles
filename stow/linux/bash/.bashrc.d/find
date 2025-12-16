@@ -1,15 +1,15 @@
-f () {
+f() {
   find . -iname "*$1*"
 }
 
-ff () {
+ff() {
   find . -type f -iname "*$1*"
 }
 
-fd () {
+fd() {
   find . -type d -iname "*$1*"
 }
 
-ffp () {
+ffp() {
   find "$1" -type f -iname "*$2*"
 }

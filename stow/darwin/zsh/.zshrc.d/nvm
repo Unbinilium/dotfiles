@@ -1,4 +1,4 @@
-__lazy_load_nvm () {
+__lazy_load_nvm() {
   if [[ -n "${__NVM_LOADED-}" ]]; then
     return
   fi
@@ -11,17 +11,17 @@ __lazy_load_nvm () {
   __NVM_LOADED=1
 }
 
-npm () {
+npm() {
  __lazy_load_nvm
  npm $@
 }
 
-node () {
+node() {
   __lazy_load_nvm
   node $@
 }
 
-nvm () {
+nvm() {
   __lazy_load_nvm
   nvm $@
 }

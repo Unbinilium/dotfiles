@@ -1,4 +1,4 @@
-tmsr () {
+tmsr() {
     while read -r __LOCAL_SNAPSHOT_ID; do
         if ! [[ -z "$__LOCAL_SNAPSHOT_ID" ]]; then
             tmutil deletelocalsnapshots "$__LOCAL_SNAPSHOT_ID"
