@@ -24,7 +24,7 @@ precmd() {
 setopt PROMPT_SUBST
 
 # set the prompt string
-PROMPT='%B%F{240}%2~%f%b ${vcs_info_msg_0_}%(?.%F{green}%#.%F{red}(%?%) %#)%f '
+PROMPT='%B%F{250}%2~%f%b ${vcs_info_msg_0_}%(?.%F{green}%#.%F{red}(%?%) %#)%f '
 
 # add user local bin directories to PATH
 if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin" ]]; then
