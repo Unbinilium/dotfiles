@@ -10,7 +10,5 @@ vim.api.nvim_set_hl(0, 'FloatBorder', { bg = 'none' })
 vim.api.nvim_set_hl(0, 'Pmenu', { bg = 'none' })
 
 vim.lsp.enable('clangd')
-vim.lsp.enable('cmake')
 vim.lsp.enable('ruff')
-vim.lsp.enable('ruff-lsp')
 vim.lsp.enable('rust_analyzer')
