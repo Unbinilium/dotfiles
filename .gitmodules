@@ -4,3 +4,6 @@
 [submodule "stow/common/nvim/.config/nvim/pack/nvim/start/nvim-lspconfig"]
 	path = stow/common/nvim/.config/nvim/pack/nvim/start/nvim-lspconfig
 	url = https://github.com/neovim/nvim-lspconfig
+[submodule "stow/common/nvim/.config/nvim/pack/nvim/start/nvim-treesitter"]
+	path = stow/common/nvim/.config/nvim/pack/nvim/start/nvim-treesitter
+	url = https://github.com/nvim-treesitter/nvim-treesitter
