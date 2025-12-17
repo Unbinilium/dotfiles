@@ -11,8 +11,12 @@ for _, group in ipairs(transparent_highlights) do
   vim.api.nvim_set_hl(0, group, { bg = 'none' })
 end
 
--- Set netrw to use tree-style listing
+-- Set netrw options
+vim.g.netrw_altv = 1
+vim.g.netrw_fastbrowse = 0
+vim.g.netrw_keepdir = 0
 vim.g.netrw_liststyle = 3
+vim.keymap.set('n', '<C-e>', vim.cmd.Lexplore)
 
 -- Remap Emacs-style keybindings in insert and command modes
 -- Navigation
