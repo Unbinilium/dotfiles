@@ -44,12 +44,10 @@ vim.keymap.set('c', '<M-d>', '<C-w>')
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "qf",
   callback = function(event)
-    local is_loclist = vim.fn.getwininfo(vim.fn.win_getid())[1].loclist == 1
-    if is_loclist then
-      vim.keymap.set("n", "<CR>", "<CR>:lclose<CR>", { buffer = event.buf, remap = true, silent = true })
-    else
-      vim.keymap.set("n", "<CR>", "<CR>:cclose<CR>", { buffer = event.buf, remap = true, silent = true })
-    end
+    local win_info = vim.fn.getwininfo(vim.api.nvim_get_current_win())[1]
+    if not win_info then return end
+    local close_cmd = win_info.loclist == 1 and ":lclose<CR>" or ":cclose<CR>"
+    vim.keymap.set("n", "<CR>", "<CR>" .. close_cmd, { buffer = event.buf, remap = true, silent = true })
   end,
 })
 
