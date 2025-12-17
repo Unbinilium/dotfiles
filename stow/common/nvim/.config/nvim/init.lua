@@ -18,6 +18,9 @@ vim.g.netrw_keepdir = 0
 vim.g.netrw_liststyle = 3
 vim.keymap.set('n', '<C-e>', vim.cmd.Lexplore)
 
+-- Auto clear search highlighting
+vim.keymap.set('n', '<Esc>', ':nohlsearch<CR>', { silent = true })
+
 -- Remap Emacs-style keybindings in insert and command modes
 -- Navigation
 vim.keymap.set({ 'i', 'c' }, '<C-a>', '<Home>')
@@ -36,6 +39,19 @@ vim.keymap.set('c', '<C-k>', '<C-u>')
 vim.keymap.set({ 'i', 'c' }, '<M-BS>', '<C-w>')
 vim.keymap.set('i', '<M-d>', '<C-o>dw')
 vim.keymap.set('c', '<M-d>', '<C-w>')
+
+-- Auto close lsp document symbol window after jump
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "qf",
+  callback = function(event)
+    local is_loclist = vim.fn.getwininfo(vim.fn.win_getid())[1].loclist == 1
+    if is_loclist then
+      vim.keymap.set("n", "<CR>", "<CR>:lclose<CR>", { buffer = event.buf, remap = true, silent = true })
+    else
+      vim.keymap.set("n", "<CR>", "<CR>:cclose<CR>", { buffer = event.buf, remap = true, silent = true })
+    end
+  end,
+})
 
 -- Enable LSP servers (https://github.com/neovim/nvim-lspconfig)
 vim.lsp.enable({
