@@ -80,12 +80,6 @@ set ai
 set si
 set wrap
 
-" map Ctrl + hjkl to switch between windows
-map <C-j> <C-W>j
-map <C-k> <C-W>k
-map <C-h> <C-W>h
-map <C-l> <C-W>l
-
 " tab management command maps
 map <leader>tn :tabnew<cr>
 map <leader>to :tabonly<cr>
