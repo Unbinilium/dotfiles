@@ -21,6 +21,9 @@ vim.keymap.set('n', '<C-e>', vim.cmd.Lexplore)
 -- Auto clear search highlighting
 vim.keymap.set('n', '<Esc>', ':nohlsearch<CR>', { silent = true })
 
+-- List all tabs
+vim.keymap.set('n', '<M-Tab>', ':tabs<CR>')
+
 -- Remap Emacs-style keybindings in insert and command modes
 -- Navigation
 vim.keymap.set({ 'i', 'c' }, '<C-a>', '<Home>')

@@ -18,6 +18,9 @@ autocmd FocusLost * silent! wall
 " use W to save file as root
 command! W execute 'w !sudo tee % > /dev/null' <bar> edit!
 
+" disable tab line
+set showtabline=0
+
 " set scrolloff when using j/k
 set so=7
 
@@ -45,6 +48,9 @@ set showmatch
 
 " enable syntax highlighting
 syntax on
+
+" enable true color support
+set termguicolors
 
 " enable command-line display
 set showcmd
@@ -94,5 +100,5 @@ vmap <M-j> :m'>+<cr>`<my`>mzgv`yo`z
 vmap <M-k> :m'<-2<cr>`>my`<mzgv`yo`z
 
 " always show the status line
-set laststatus=2
-set statusline=%F\ %y\ %m\ %=\ \[%{mode()}\]\ %v\:%l\/%L\ \[%{&fileencoding}\]\ %{winnr()}
+set laststatus=3
+set statusline=\[%{mode()}\]\ %F\ %y\ %m%r%w\ %=\ %l\/%L\ %v\ 0x%04B\ \[%{&fileencoding}\]\ %{tabpagenr()}\#%{tabpagenr('$')}
