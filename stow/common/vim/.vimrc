@@ -86,18 +86,12 @@ map <C-k> <C-W>k
 map <C-h> <C-W>h
 map <C-l> <C-W>l
 
-" change directory to the current file's directory
-map <leader>cd :cd %:p:h<cr>:pwd<cr>
-
 " tab management command maps
 map <leader>tn :tabnew<cr>
 map <leader>to :tabonly<cr>
 map <leader>tc :tabclose<cr>
 map <leader>tm :tabmove
 map <leader>t<leader> :tabnext<cr>
-
-" open new tab with current file's directory
-map <leader>te :tabedit <C-r>=escape(expand("%:p:h"), " ")<cr>/
 
 " move selected lines up and down
 nmap <M-j> mz:m+<cr>`z
