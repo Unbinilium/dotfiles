@@ -11,36 +11,34 @@ for _, group in ipairs(transparent_highlights) do
   vim.api.nvim_set_hl(0, group, { bg = 'none' })
 end
 
--- Set netrw options
-vim.g.netrw_altv = 1
-vim.g.netrw_fastbrowse = 0
-vim.g.netrw_keepdir = 0
-vim.g.netrw_liststyle = 3
-vim.keymap.set('n', '<C-e>', vim.cmd.Lexplore)
+-- Set status line colors
+vim.api.nvim_set_hl(0, 'StatusLine', { fg = '#eeeeee', bg = 'none' })
+vim.api.nvim_set_hl(0, 'StatusLineNC', { fg = '#888888', bg = 'none' })
 
--- Auto clear search highlighting
-vim.keymap.set('n', '<Esc>', ':nohlsearch<CR>', { silent = true })
+-- Hide command line unless needed
+vim.opt.cmdheight = 0
+
+-- Set netrw lexplore keymap
+vim.keymap.set('n', '<M-e>', vim.cmd.Lexplore)
 
 -- List all tabs
 vim.keymap.set('n', '<M-Tab>', ':tabs<CR>')
 
--- Remap Emacs-style keybindings in insert and command modes
+-- Remap Emacs-style keybindings command modes
 -- Navigation
-vim.keymap.set({ 'i', 'c' }, '<C-a>', '<Home>')
-vim.keymap.set({ 'i', 'c' }, '<C-e>', '<End>')
-vim.keymap.set({ 'i', 'c' }, '<C-b>', '<Left>')
-vim.keymap.set({ 'i', 'c' }, '<C-f>', '<Right>')
-vim.keymap.set({ 'i', 'c' }, '<C-p>', '<Up>')
-vim.keymap.set({ 'i', 'c' }, '<C-n>', '<Down>')
+vim.keymap.set('c', '<C-a>', '<Home>')
+vim.keymap.set('c', '<C-e>', '<End>')
+vim.keymap.set('c', '<C-b>', '<Left>')
+vim.keymap.set('c', '<C-f>', '<Right>')
+vim.keymap.set('c', '<C-p>', '<Up>')
+vim.keymap.set('c', '<C-n>', '<Down>')
 -- Word-wise navigation
-vim.keymap.set({ 'i', 'c' }, '<M-b>', '<C-Left>')
-vim.keymap.set({ 'i', 'c' }, '<M-f>', '<C-Right>')
+vim.keymap.set('c', '<M-b>', '<C-Left>')
+vim.keymap.set('c', '<M-f>', '<C-Right>')
 -- Killing and deleting
-vim.keymap.set('i', '<C-k>', '<C-o>D')
 vim.keymap.set('c', '<C-k>', '<C-u>')
 -- Word-wise deleting
-vim.keymap.set({ 'i', 'c' }, '<M-BS>', '<C-w>')
-vim.keymap.set('i', '<M-d>', '<C-o>dw')
+vim.keymap.set('c', '<M-BS>', '<C-w>')
 vim.keymap.set('c', '<M-d>', '<C-w>')
 
 -- Auto close lsp document symbol window after jump
