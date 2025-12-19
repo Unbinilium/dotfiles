@@ -19,6 +19,7 @@ ORDERED_SETUP_DIRS=(
   "stow"
   "code"
   "container"
+  "zed"
 )
 IGNORED_SETUP_DIRS=()
 while [[ $# -gt 0 ]]; do

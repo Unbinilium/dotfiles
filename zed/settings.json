@@ -57,6 +57,8 @@
     "button": true
   },
   "search": {
+    "case_sensitive": true,
+    "whole_word": false,
     "button": true,
     "center_on_match": true,
     "regex": false
