@@ -1,5 +1,6 @@
 {
   "git": {
+    "path_style": "file_path_first",
     "inline_blame": {
       "enabled": false
     }
