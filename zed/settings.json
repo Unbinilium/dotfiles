@@ -1,6 +1,8 @@
 {
+  "enable_language_server": false,
   "git": {
     "path_style": "file_path_first",
+    "hunk_style": "staged_hollow",
     "inline_blame": {
       "enabled": false
     }
@@ -32,9 +34,11 @@
     "sort_by_path": false
   },
   "preview_tabs": {
+    "enable_preview_multibuffer_from_code_navigation": true,
     "enable_keep_preview_on_code_navigation": true,
     "enable_preview_from_file_finder": true
   },
+  "max_tabs": 9,
   "tabs": {
     "show_diagnostics": "errors",
     "file_icons": true,
