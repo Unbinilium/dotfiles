@@ -202,5 +202,6 @@
     "terminal.integrated.suggest.enabled": true,
     "git.enableSmartCommit": true,
     "workbench.editor.tabActionCloseVisibility": false,
-    "editor.inlayHints.enabled": "offUnlessPressed"
+    "editor.inlayHints.enabled": "offUnlessPressed",
+    "explorer.fileNesting.enabled": true
 }
