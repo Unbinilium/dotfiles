@@ -92,9 +92,6 @@
     "terminal.integrated.smoothScrolling": true,
     "notebook.output.scrolling": true,
     "editor.minimap.showSlider": "always",
-    "workbench.settings.applyToAllProfiles": [
-        "pylint.args"
-    ],
     "markdown.preview.typographer": true,
     "terminal.integrated.enableImages": true,
     "workbench.editor.scrollToSwitchTabs": true,
