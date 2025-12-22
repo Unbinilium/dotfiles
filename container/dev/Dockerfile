@@ -38,7 +38,7 @@ RUN apt-get install -y coreutils findutils diffutils file git git-lfs gnupg unzi
     apt-get clean
 
 # install compilers and debuggers, build tools
-RUN apt-get install -y build-essential llvm lldb gcc gdb clang-format strace valgrind make cmake ninja-build nodejs && \
+RUN apt-get install -y build-essential pkg-config llvm lldb gcc gdb clang-format strace valgrind make cmake ninja-build nodejs && \
     apt-get clean
 
 # install monitoring tools

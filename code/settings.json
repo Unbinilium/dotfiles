@@ -201,5 +201,7 @@
     "github.copilot.chat.alternateGeminiModelFPrompt.enabled": true,
     "github.copilot.chat.alternateGptPrompt.enabled": true,
     "svelte.enable-ts-plugin": true,
-    "svelte.ask-to-enable-ts-plugin": false
+    "svelte.ask-to-enable-ts-plugin": false,
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "terminal.integrated.suggest.enabled": true
 }
