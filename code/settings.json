@@ -116,7 +116,6 @@
     "ipynb.experimental.serialization": true,
     "terminal.integrated.stickyScroll.enabled": true,
     "editor.inlineSuggest.syntaxHighlightingEnabled": true,
-    "editor.inlayHints.padding": true,
     "editor.stickyTabStops": true,
     "python.analysis.autoImportCompletions": true,
     "python.analysis.logLevel": "Warning",
@@ -203,5 +202,8 @@
     "svelte.enable-ts-plugin": true,
     "svelte.ask-to-enable-ts-plugin": false,
     "C_Cpp.intelliSenseEngine": "disabled",
-    "terminal.integrated.suggest.enabled": true
+    "terminal.integrated.suggest.enabled": true,
+    "git.enableSmartCommit": true,
+    "workbench.editor.tabActionCloseVisibility": false,
+    "editor.inlayHints.enabled": "offUnlessPressed"
 }
