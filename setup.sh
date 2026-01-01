@@ -2,7 +2,6 @@
 set -o errexit -o pipefail
 
 git submodule update --init --recursive
-git pull --recurse-submodules
 
 usage() {
   cat <<'EOF'
