@@ -7,3 +7,6 @@
 [submodule "stow/common/nvim/.config/nvim/pack/nvim/start/nvim-treesitter"]
 	path = stow/common/nvim/.config/nvim/pack/nvim/start/nvim-treesitter
 	url = https://github.com/nvim-treesitter/nvim-treesitter
+[submodule "stow/common/tmux/.tmux/plugins/tmux-resurrect"]
+	path = stow/common/tmux/.tmux/plugins/tmux-resurrect
+	url = https://github.com/tmux-plugins/tmux-resurrect
