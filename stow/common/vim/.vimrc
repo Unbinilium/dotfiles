@@ -168,8 +168,7 @@ function! VisualSelectionSize()
     return ''
 endfunction
 set laststatus=2
-set statusline=
-set statusline+=\[%{mode()}\]
+set statusline=\[%{mode()}\]
 set statusline+=\ %F
 set statusline+=\ %y
 set statusline+=\ %m%r%w
