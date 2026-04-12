@@ -1,4 +1,5 @@
 brew "aria2"
+brew "binaryen"
 brew "binutils"
 brew "boost"
 brew "clang-format"
