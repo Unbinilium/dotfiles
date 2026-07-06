@@ -1,0 +1,30 @@
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt PUSHD_SILENT
+
+__navigation_back() {
+  if [[ -n "$BUFFER" ]]; then
+    print -n '\a'
+    return 1
+  fi
+  if ! pushd -q +1 2>/dev/null; then
+    setopt localoptions NO_AUTO_PUSHD
+    cd .. >/dev/null 2>&1
+  fi
+  zle accept-line
+}
+
+__navigation_forward() {
+  if [[ -n "$BUFFER" ]]; then
+    print -n '\a'
+    return 1
+  fi
+  pushd -q -0 2>/dev/null
+  zle accept-line
+}
+
+zle -N __navigation_back
+zle -N __navigation_forward
+
+bindkey '\e[1;2D' __navigation_back
+bindkey '\e[1;2C' __navigation_forward
