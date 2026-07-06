@@ -8,17 +8,13 @@ CONTAINER_MEMORY="12g"
 CONTAINER_CPUS="6"
 CONTAINER_IMAGE_NAME="dev"
 
-if container inspect "$CONTAINER_RUN_NAME" | jq -e '. | length == 0' > /dev/null 2>&1; then
-  container run --name "$CONTAINER_RUN_NAME" \
-    --publish "$CONTAINER_PUBLISH" \
-    --volume "$CONTAINER_VOLUME" \
-    --ssh --tty --detach \
-    --memory "$CONTAINER_MEMORY" \
-    --cpus "$CONTAINER_CPUS" \
-    "$CONTAINER_IMAGE_NAME"
-else
-  echo "Container '$CONTAINER_RUN_NAME' is already exist, skipping run."
-fi
+container run --name "$CONTAINER_RUN_NAME" \
+  --publish "$CONTAINER_PUBLISH" \
+  --volume "$CONTAINER_VOLUME" \
+  --ssh --tty --detach \
+  --memory "$CONTAINER_MEMORY" \
+  --cpus "$CONTAINER_CPUS" \
+  "$CONTAINER_IMAGE_NAME"
 
 unset CONTAINER_RUN_NAME
 unset CONTAINER_PUBLISH

@@ -11,7 +11,7 @@ do_setup() {
     fi
     (
         cd "${__setup_dir_path}"
-        ./setup.sh && ./run.sh
+        ./setup.sh && container image ls && ./run.sh
     )
   done
 }
