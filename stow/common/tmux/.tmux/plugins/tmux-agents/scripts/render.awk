@@ -7,6 +7,8 @@ BEGIN {
   WAIT = ENVIRON["AGENTS_S_WAIT"]; IDLE = ENVIRON["AGENTS_S_IDLE"]
   msg = ENVIRON["AGENTS_MSG"]
   M_ELL = mark("AGENTS_M_ELL", "...")
+  M_SEP = mark("AGENTS_M_SEP", "-")
+  TI = ENVIRON["AGENTS_PV_TITLE"]
   M_BUSY = mark("AGENTS_M_BUSY", "*")
   M_WAIT = mark("AGENTS_M_WAIT", "!")
   M_IDLE = mark("AGENTS_M_IDLE", "-")
@@ -14,29 +16,29 @@ BEGIN {
   BLANK = sprintf("%" cols "s", "")
   INSET = " "
   GUT = 5
-  INDENT = sprintf("%" GUT "s", "")
   W_UP = 7
   NW_MAX = 16
   LW_MAX = 24
   BW_MAX = 18
-  CWD_KEEP = 18
+  TW_MAX = 32
+  CWD_KEEP = 14
+  MID = " " sprintf("%c%c", 194, 183) " "
 
   KEYS = "enter open,j-k move,1-9 jump,r refresh,x kill,q quit"
-  KEYS_IDLE = "r refresh,q quit"
   nhint = split(KEYS, hint, ",")
   split("1,3,5,6,4,2", hrank, ",")
   for (i = 1; i <= nhint; ++i) rank[hint[i]] = hrank[i]
 
-  for (i = 1; i < 256; ++i) ORD[sprintf("%c", i)] = i
-
   FF = ENVIRON["AGENTS_FRAME_F"]
   full = 1
   if (FF != "") {
-    if ((getline pline < FF) > 0 && pline == "@" cols) {
-      full = 0
-      while ((getline pline < FF) > 0 && pn < 500) P[++pn] = pline
+    if ((getline pline < FF) > 0) {
+      if (pline == "@" cols) {
+        full = 0
+        while ((getline pline < FF) > 0 && pn < 500) P[++pn] = pline
+      }
+      close(FF)
     }
-    close(FF)
   }
 }
 
@@ -48,20 +50,32 @@ NF >= 10 {
   ++n
   name[n] = $3; st[n] = $4; up[n] = $5 + 0; cwd[n] = $6; loc[n] = $7 ":" $8
   br[n] = $11
+  ti[n] = tclean($12, cwd[n])
   if (dw(name[n]) > nwn) nwn = dw(name[n])
-  if (dw(loc[n]) > lwn) lwn = dw(loc[n])
+  if (dw(ti[n]) > twn) twn = dw(ti[n])
   if (dw(br[n]) > bwn) bwn = dw(br[n])
-  if (dw(cwd[n]) > cwn) cwn = dw(cwd[n])
-  if (n == 1) { loc1 = loc[n]; br1 = br[n] }
-  else {
-    if (loc[n] != loc1) lo_vary = 1
-    if (br[n] != br1) br_vary = 1
+  if (index(br[n], ":")) bwide = 1
+}
+
+function ordinit(i) {
+  for (i = 1; i < 256; ++i) ORD[sprintf("%c", i)] = i
+  ORDN = 1
+}
+
+function rep(c, w, need, s) { # w copies of c, from a doubling cache
+  need = w * length(c)
+  s = REPS[c]
+  if (length(s) < need) {
+    if (s == "") s = c
+    while (length(s) < need) s = s s
+    REPS[c] = s
   }
-  if (index(br[n], ":")) blbl = "repo:branch"
+  return substr(s, 1, need)
 }
 
 function dw(s, w, i, n, c, cp) {
   if (s !~ /[^ -~]/) return length(s)
+  if (!ORDN) ordinit()
   n = length(s)
   w = 0
   for (i = 1; i <= n; ) {
@@ -108,8 +122,54 @@ function cpw(cp) {
 function ln(s) { L[++nrow] = s }
 function pad(s, w, d) {
   d = w - dw(s)
-  while (d-- > 0) s = s " "
-  return s
+  return (d > 0) ? s rep(" ", d) : s
+}
+
+function rfind(s, t, p, q, at) { # index() of the LAST occurrence of t
+  p = 0; at = 1
+  while ((q = index(substr(s, at), t)) > 0) { p = at + q - 1; at = p + 1 }
+  return p
+}
+
+function tclean(t, cwdpath, p, tail, seg) { # peel a title's id suffix and cwd-leaf prefix
+  if (t == "") return t
+  p = rfind(t, MID)
+  if (p > 0) {
+    tail = tolower(substr(t, p + length(MID)))
+    if (length(tail) >= 8 && tail ~ /^[0-9a-f][0-9a-f-]*$/) t = substr(t, 1, p - 1)
+  }
+  p = index(t, MID)
+  if (p > 1) {
+    seg = substr(t, 1, p - 1)
+    sub(/\/+$/, "", cwdpath)
+    sub(/.*\//, "", cwdpath)
+    if (cwdpath != "" && seg == cwdpath) t = substr(t, p + length(MID))
+  }
+  return t
+}
+
+function tcut(t) { # a title column entry, cut to its column
+  if (dw(t) <= tw) return t
+  return dwcut(t, tw - dw(M_ELL)) M_ELL
+}
+
+function dwcut(s, w, i, n, c, cl, cw, tot) { # cut s to display width w, whole chars
+  if (dw(s) <= w) return s
+  if (!ORDN) ordinit()
+  n = length(s)
+  tot = 0
+  for (i = 1; i <= n; ) {
+    c = ORD[substr(s, i, 1)]
+    if (c < 128) { cl = 1; cw = 1 }
+    else if (c < 194) { cl = 1; cw = 0 }
+    else if (c < 224) { cl = 2; cw = cpw((c - 192) * 64 + ORD[substr(s, i + 1, 1)] % 64) }
+    else if (c < 240) { cl = 3; cw = cpw(((c - 224) * 64 + ORD[substr(s, i + 1, 1)] % 64) * 64 + ORD[substr(s, i + 2, 1)] % 64) }
+    else { cl = 4; cw = cpw((((c - 240) * 64 + ORD[substr(s, i + 1, 1)] % 64) * 64 + ORD[substr(s, i + 2, 1)] % 64) * 64 + ORD[substr(s, i + 3, 1)] % 64) }
+    if (tot + cw > w) break
+    tot += cw
+    i += cl
+  }
+  return substr(s, 1, i - 1)
 }
 
 function cut_path(s, w, nseg, seg, i, out, ow) {
@@ -125,8 +185,9 @@ function cut_path(s, w, nseg, seg, i, out, ow) {
   return M_ELL "/" out
 }
 
-function fields(agent, uptime, where, branch, path, s) {
+function fields(agent, title, uptime, where, branch, path, s) {
   s = pad(agent, nw)
+  if (SHOW_TI) s = s "  " pad(tcut(title), tw)
   if (SHOW_UP) s = s "  " pad(uptime, W_UP)
   if (SHOW_WH) s = s "  " pad(where, lw)
   if (SHOW_BR) s = s "  " pad(branch, bw)
@@ -141,25 +202,25 @@ function gutter(i, on, lbl) {
 
 function rdeco(fc) { return (fc == " ") ? 2 : 4 } # ␣text␣, and on a rule ──
 function room(text, fc) {
- return cols - (text == "" ? 0 : length(text) + ((fc == " ") ? 0 : 4) + 1) - rdeco(fc)
+ return cols - (text == "" ? 0 : dw(text) + ((fc == " ") ? 0 : 4) + 1) - rdeco(fc)
 }
 
 function bar(text, right, rightw, fc, rsty, lsty, lead, tail, deco, dressed, rw, gap, s) {
   if (text != "" && fc != " ") { lead = fc fc " "; tail = " "; deco = 4 }
   dressed = (right != "" && rightw + rdeco(fc) <= cols)
   rw = (right == "") ? 0 : (dressed ? rightw + rdeco(fc) : rightw)
-  gap = cols - deco - length(text) - rw
+  gap = cols - deco - dw(text) - rw
   if (gap < 1 && text != "" && right != "") {
-    text = substr(text, 1, length(text) + gap - 1)
+    text = dwcut(text, dw(text) + gap - 1)
     if (text == "") { lead = ""; tail = ""; deco = 0 }
-    gap = cols - deco - length(text) - rw
+    gap = cols - deco - dw(text) - rw
   } else if (gap < 0) {
-    text = substr(text, 1, length(text) + gap)
+    text = dwcut(text, dw(text) + gap)
     if (text == "") { lead = ""; tail = ""; deco = 0 }
-    gap = cols - deco - length(text) - rw
+    gap = cols - deco - dw(text) - rw
   }
   s = lead text tail
-  while (gap-- > 0) s = s fc
+  if (gap > 0) s = s rep(fc, gap)
   if (dressed) return s rsty " " right " " R lsty (fc == " " ? "" : fc fc)
   return s rsty right R lsty
 }
@@ -226,83 +287,76 @@ function emit(i, nd, dam, hi) {
 
 function fit(nat, lo, hi) { return (nat > hi) ? hi : ((nat < lo) ? lo : nat) }
 
-function layout(i, need, slack, give, nd, dcol) {
-  SHOW_UP = 1
-  SHOW_WH = 1
-  SHOW_BR = (bw > 0)
-
-  if (n < 2) { lo_vary = 1; br_vary = 1 }
-
-  if (SHOW_BR && !br_vary) dcol[++nd] = "b"
-  if (SHOW_WH && !lo_vary) dcol[++nd] = "w"
-  dcol[++nd] = "u"
-  if (SHOW_WH && lo_vary) dcol[++nd] = "w"
-  if (SHOW_BR && br_vary) dcol[++nd] = "b"
-
-  budget = cols - GUT - 1
-  need = nw + 2 + CWD_KEEP
-  if (SHOW_UP) need += W_UP + 2
-  if (SHOW_WH) need += lw + 2
-  if (SHOW_BR) need += bw + 2
-  for (i = 1; i <= nd && need > budget; ++i) {
-    if (dcol[i] == "u" && SHOW_UP) { SHOW_UP = 0; need -= W_UP + 2 }
-    else if (dcol[i] == "w" && SHOW_WH) { SHOW_WH = 0; need -= lw + 2 }
-    else if (dcol[i] == "b" && SHOW_BR) { SHOW_BR = 0; need -= bw + 2 }
-  }
-
-  cww = budget - nw - 2
+function layout(rem) {
+  SHOW_BR = (cols >= 100 && bwn > 0)
+  SHOW_UP = (cols >= 80)
+  SHOW_WH = (cols >= 64)
+  SHOW_TI = (cols >= 48 && twn > 0)
+  tw = SHOW_TI ? fit(int(cols * 28 / 100), 10, TW_MAX) : 0
+  lw = SHOW_WH ? fit(int(cols * 10 / 100), 6, LW_MAX) : 0
+  bw = SHOW_BR ? fit(int(cols * 12 / 100), 8, BW_MAX) : 0
+  cww = cols - GUT - 1 - nw - 2
+  if (SHOW_TI) cww -= tw + 2
   if (SHOW_UP) cww -= W_UP + 2
   if (SHOW_WH) cww -= lw + 2
   if (SHOW_BR) cww -= bw + 2
-
-  slack = cww - cwn
-  for (i = nd; i >= 1 && slack > 0; --i) {
-    give = 0
-    if (dcol[i] == "w" && SHOW_WH && lwn > lw) give = lwn - lw
-    else if (dcol[i] == "b" && SHOW_BR && bwn > bw) give = bwn - bw
-    if (give > slack) give = slack
-    if (give <= 0) continue
-    if (dcol[i] == "w") lw += give; else bw += give
-    slack -= give
-    cww -= give
+  if (cww < CWD_KEEP && SHOW_BR && bw > 8) {
+    rem = CWD_KEEP - cww
+    if (bw - rem < 8) rem = bw - 8
+    bw -= rem; cww += rem
+  }
+  if (cww < CWD_KEEP && SHOW_WH && lw > 6) {
+    rem = CWD_KEEP - cww
+    if (lw - rem < 6) rem = lw - 6
+    lw -= rem; cww += rem
+  }
+  if (cww < CWD_KEEP && SHOW_TI && tw > 10) {
+    rem = CWD_KEEP - cww
+    if (tw - rem < 10) rem = tw - 10
+    tw -= rem; cww += rem
   }
   if (cww < 3) cww = 3
 }
 
 END {
-  if (blbl == "") blbl = "branch"
-  if (blbl != "branch") BW_MAX = 28
+  if (bwide) BW_MAX = 28
   nw = fit(nwn, 5, NW_MAX)
-  lw = fit(lwn, 5, LW_MAX)
-  bw = (bwn > 0) ? fit(bwn, length(blbl), BW_MAX) : 0
   layout()
 
   if (n == 0) {
-    ln(CHR INSET "  " (scanning ? "scanning agents..." : "no agents found") R)
-    right = (msg != "") ? msg : hints(room("", RULE), KEYS_IDLE)
-    ln(CHR bar("", right, dw(right), RULE, msgsty(), CHR) R)
+    if (msg != "") ln(CHR bar("", msg, dw(msg), RULE, msgsty(), CHR) R)
     emit()
     exit
   }
 
-  count = n " running"
-  if (shown > 0 && shown < n) count = first "-" (first + shown - 1) " of " n
-  countw = length(count)
-  ln(CHR bar(INDENT fields("agent", "uptime", "where", blbl, "cwd"), count, countw, " ", "", CHR) R)
+  rt = (shown > 0 && shown < n) ? first "-" (first + shown - 1) "/" n : ""
   if (length(shown) == 0) { first = 1; shown = n }
   if (first < 1) first = 1
   for (i = first; i < first + shown && i <= n; ++i) {
-    row = gutter(i, i == sel) fields(name[i], human(up[i]), loc[i], br[i], cwd[i])
+    row = gutter(i, i == sel) fields(name[i], ti[i], human(up[i]), loc[i], br[i], cwd[i])
     if (i == sel && SEL != "") ln(SEL BLANK CR SEL row R)
     else ln(row R)
   }
 
+  if (TI != "" && sel >= 1 && sel <= n) TI = tclean(TI, cwd[sel])
   if (npv == 0) plbl = fitting ? sprintf("fitting to %dx%d", cols, avail) : ""
   else if (exact) plbl = "preview: exact"
   else if (aw == 0) plbl = "preview"
   else if (fitting) plbl = sprintf("fitting %dx%d to %dx%d", aw, ah, cols, avail)
   else plbl = sprintf("preview: %dx%d", aw, ah)
-  right = (msg != "") ? msg : hints(room(plbl, RULE), KEYS)
+  if (TI != "" && !fitting && (npv > 0 || plbl == "")) {
+    tlbl = (exact || plbl == "") ? TI : plbl " " M_SEP " " TI
+    tmax = room("", RULE) - 14 # the widest hint stays
+    if (tmax >= 8) {
+      if (dw(tlbl) > tmax) tlbl = dwcut(tlbl, tmax - dw(M_ELL)) M_ELL
+      plbl = tlbl
+    }
+  }
+  if (msg != "") right = msg
+  else {
+    right = hints(room(plbl, RULE) - (rt == "" ? 0 : dw(rt) + 3), KEYS)
+    if (rt != "") right = (right == "") ? rt : rt " " M_SEP " " right
+  }
   stc = (st[sel] == "busy") ? BUSY : (st[sel] == "waiting") ? WAIT : CHR
   ln(stc bar(plbl, right, dw(right), RULE, msgsty(), stc) R)
 

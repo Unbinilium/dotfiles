@@ -85,7 +85,6 @@ else
   deci=$tick
   status_every=$(((interval * 10 + tick - 1) / tick))
 fi
-[ "$deci" -gt 250 ] && deci=250
 status_init "${o_capture:-}" "${o_busy:-}" "${o_wait:-}" "${o_cpu:-}"
 
 AGENTS_S_SEL='' AGENTS_S_CHROME='' AGENTS_S_MSG=''
@@ -294,7 +293,7 @@ class_prune() {
   return 0
 }
 
-hold_pane='' hold_pv='' hold_aw=0 hold_ah=0
+hold_pane='' hold_pv='' hold_aw=0 hold_ah=0 hold_ti=''
 LAST_SIG=''
 
 frame_invalidate() {
@@ -316,7 +315,7 @@ settle_clear() {
   return 0
 }
 
-CHROME_ROWS=2
+CHROME_ROWS=1
 PREV_SHARE=3
 
 layout() {
@@ -420,7 +419,7 @@ EOF
         eval "SC_${1#%}=\$_rs SA_${1#%}=\$_srnow"
         case " $SCLIST " in *" ${1#%} "*) ;; *) SCLIST="$SCLIST ${1#%}" ;; esac
       fi
-      add_row "$1$SEP$2$SEP$3$SEP$_rs$SEP$5$SEP$6$SEP$7$SEP$8$SEP$9$SEP${10}$SEP${11:-}"
+      add_row "$1$SEP$2$SEP$3$SEP$_rs$SEP$5$SEP$6$SEP$7$SEP$8$SEP$9$SEP${10}$SEP${11:-}$SEP${12:-}"
       ;;
     *) add_row "$_l" ;;
     esac
@@ -500,12 +499,12 @@ poll_collect() {
   class_prune
   _raw=''
   _batch=''
-  while IFS="$SEP" read -r _pane _apid2 _name _ups _pcpu _cwd _ses _wix _wid _stamp _br; do
+  while IFS="$SEP" read -r _pane _apid2 _name _ups _pcpu _cwd _ses _wix _wid _stamp _br _title; do
     [ -z "$_pane" ] && continue
     case "$_pane" in '#'*) continue ;; esac
     agents_status_stamp "$_stamp" "$_ups" "$_now"
     _st="$AGENTS_ST"
-    _raw="$_raw$_pane$SEP$_apid2$SEP$_name$SEP$_st$SEP$_ups$SEP$_cwd$SEP$_ses$SEP$_wix$SEP$_wid$SEP$_pcpu$SEP$_br$NL"
+    _raw="$_raw$_pane$SEP$_apid2$SEP$_name$SEP$_st$SEP$_ups$SEP$_cwd$SEP$_ses$SEP$_wix$SEP$_wid$SEP$_pcpu$SEP$_br$SEP$_title$NL"
     [ "$stamp_opt" = on ] && _batch="$_batch${_batch:+ \\; }set-option -p -t $_pane @agent_name $_name \\; set-option -p -t $_pane @agent_uptime $_ups"
   done <"$ASYNC_F"
   rm -f "$ASYNC_F" "$ASYNC_F.err" 2>/dev/null
@@ -528,18 +527,26 @@ poll_collect() {
 }
 
 collect_light() {
-  _panes="$(agents_rows list-panes -a -F "#{pane_id}${TAB}#{@agent_status}${TAB}#{session_name}${TAB}#{window_index}${TAB}#{window_id}${TAB}#{?@agents_owned,1,0}${TAB}#{window_activity}")" || return 0
+  _panes="$(tmux list-panes -a -F "#{pane_id}${TAB}.#{@agent_status}${TAB}#{session_name}${TAB}#{window_index}${TAB}#{window_id}${TAB}#{?@agents_owned,1,0}${TAB}#{window_activity}${TAB}#{?#{==:#{pane_title},#{host}},,#{pane_title}}" 2>/dev/null)" || return 0
   _now="$(date +%s)"
   NOW_TICK="$_now"
   _oldN=$N
   sel_remember
   _live='' _ncap=0 _nre=0
-  while IFS="$SEP" read -r _pane _stamp _ses _wix _wid _own _act; do
+  while IFS="$TAB" read -r _pane _stamp _ses _wix _wid _own _act _title; do
     [ -z "$_pane" ] && continue
     _idn="${_pane#%}"
     case " $_live " in *" $_idn "*) continue ;; esac
     _live="$_live $_idn"
-    eval "LSTAMP_$_idn=\$_stamp LACT_$_idn=\$_act"
+    _stamp="${_stamp#.}"
+    while :; do
+      case "$_title" in
+      *"$TAB"*) _title="${_title%%"$TAB"*} ${_title#*"$TAB"}" ;;
+      *"$SEP"*) _title="${_title%%"$SEP"*} ${_title#*"$SEP"}" ;;
+      *) break ;;
+      esac
+    done
+    eval "LSTAMP_$_idn=\$_stamp LACT_$_idn=\$_act LTITLE_$_idn=\$_title"
     if [ "$_own" != 1 ]; then
       eval "LSES_$_idn=\$_ses LWIX_$_idn=\$_wix LWID_$_idn=\$_wid"
     fi
@@ -556,7 +563,7 @@ EOF
     set +f
     _idn="${1#%}"
     case " $_live " in *" $_idn "*) ;; *) continue ;; esac
-    eval "_stamp=\${LSTAMP_$_idn:-} _ses=\${LSES_$_idn:-\$7} _wix=\${LWIX_$_idn:-\$8} _wid=\${LWID_$_idn:-\$9}"
+    eval "_stamp=\${LSTAMP_$_idn:-} _ses=\${LSES_$_idn:-\$7} _wix=\${LWIX_$_idn:-\$8} _wid=\${LWID_$_idn:-\$9} _lti=\${LTITLE_$_idn:-}"
     _ups=$(($5 + interval))
     agents_status_stamp "$_stamp" "$_ups" "$_now"
     _st="$AGENTS_ST"
@@ -571,13 +578,13 @@ EOF
         _ncap=$((_ncap + 1))
       fi
     fi
-    _raw="$_raw$1$SEP$2$SEP$3$SEP$_st$SEP$_ups$SEP$6$SEP$_ses$SEP$_wix$SEP$_wid$SEP${10}$SEP${11:-}$NL"
+    _raw="$_raw$1$SEP$2$SEP$3$SEP$_st$SEP$_ups$SEP$6$SEP$_ses$SEP$_wix$SEP$_wid$SEP${10}$SEP${11:-}$SEP$_lti$NL"
   done <<EOF
 $ROWS
 EOF
   statuses_resolve "$_raw" "$_now"
   agents_dbg "light n=$N cap=$_ncap reuse=$_nre"
-  for _e in $_live; do unset "LSTAMP_$_e" "LSES_$_e" "LWIX_$_e" "LWID_$_e" 2>/dev/null || true; done
+  for _e in $_live; do unset "LSTAMP_$_e" "LSES_$_e" "LWIX_$_e" "LWID_$_e" "LTITLE_$_e" 2>/dev/null || true; done
   sel_restore
   [ "$N" -lt "$_oldN" ] && kick_collect
   return 0
@@ -586,6 +593,14 @@ EOF
 clamp() {
   [ "$sel" -gt "$N" ] && sel=$N
   [ "$sel" -lt 1 ] && sel=1
+}
+
+wrap_move() { # wrap_move <signed step count> - j/k moves wrap around the ends
+  [ "$N" -gt 0 ] || { sel=1; return 0; }
+  sel=$(((sel - 1 + $1) % N))
+  [ "$sel" -lt 0 ] && sel=$((sel + N))
+  sel=$((sel + 1))
+  return 0
 }
 
 sel_remember() {
@@ -800,14 +815,14 @@ preview_can_fit() {
 }
 
 preview_hold() {
-  hold_pane="$1" hold_pv="$2" hold_aw="$3" hold_ah="$4"
+  hold_pane="$1" hold_pv="$2" hold_aw="$3" hold_ah="$4" hold_ti="$5"
   return 0
 }
 
 render() {
   layout
   _avail="$PREV_ROWS"
-  _pv='' _aw=0 _ah=0 _exact=0 _fit=0 _held=0
+  _pv='' _aw=0 _ah=0 _exact=0 _fit=0 _held=0 _ti=''
   if [ "$N" -gt 0 ] && [ "$_avail" -ge 3 ]; then
     sel_row_pane
     _pvpane="$SEL_PANE"
@@ -829,11 +844,16 @@ render() {
     case "$_cap" in
     *"$NL"*)
       _geo="${_cap%%"$NL"*}"
+      _rest="${_cap#*"$NL"}"
+      case "$_rest" in
+      *"$NL"*) _ti="${_rest%%"$NL"*}" _rest="${_rest#*"$NL"}" ;;
+      *) _ti="$_rest" _rest='' ;;
+      esac
       _aw="${_geo%% *}"
       _ah="${_geo##* }"
       case "$_aw" in '' | *[!0-9]*) _aw=0 ;; esac
       case "$_ah" in '' | *[!0-9]*) _ah=0 ;; esac
-      [ "$_aw" -gt 0 ] && _pv="${_cap#*"$NL"}"
+      [ "$_aw" -gt 0 ] && _pv="$_rest"
       ;;
     *) _aw=0 ;;
     esac
@@ -848,11 +868,11 @@ render() {
       fi
     fi
     if [ "$_held" -eq 0 ]; then
-      preview_hold "$_pvpane" "$_pv" "$_aw" "$_ah"
+      preview_hold "$_pvpane" "$_pv" "$_aw" "$_ah" "$_ti"
     elif [ "$_pvpane" = "$hold_pane" ]; then
-      _pv="$hold_pv" _aw="$hold_aw" _ah="$hold_ah"
+      _pv="$hold_pv" _aw="$hold_aw" _ah="$hold_ah" _ti="$hold_ti"
     else
-      _pv='' _aw=0 _ah=0
+      _pv='' _aw=0 _ah=0 _ti=''
     fi
     [ "$_aw" -gt 0 ] && [ "$_aw" -eq "$COLS_C" ] && { _exact=1; fit_ticks=0; }
     if [ "$_exact" -eq 0 ] && preview_can_fit "$_pvpane" && [ "$fit_ticks" -lt "$FIT_MAX" ]; then
@@ -861,17 +881,18 @@ render() {
     fi
   fi
 
-  _sig="$sel|$COLS_C|$LINES_C|$LIST_FIRST|$LIST_SHOWN|$msg|$msg_plain|$scanning|$_exact|$_aw|$_ah|$_avail|$_fit|$ROWS|$_pv"
+  _sig="$sel|$COLS_C|$LINES_C|$LIST_FIRST|$LIST_SHOWN|$msg|$msg_plain|$_exact|$_aw|$_ah|$_avail|$_fit|$_ti|$ROWS|$_pv"
   [ "$_sig" = "$LAST_SIG" ] && return 0
   LAST_SIG="$_sig"
   AGENTS_MSG="$msg"
-  export AGENTS_MSG
+  AGENTS_PV_TITLE="$_ti"
+  export AGENTS_MSG AGENTS_PV_TITLE
   {
     printf '%s\n' "$ROWS"
     printf '==PV==\n'
     [ -n "$_pv" ] && printf '%s\n' "$_pv"
   } | awk -F "$SEP" -v sel="$sel" -v cols="$COLS_C" \
-    -v plain="${msg_plain:-0}" -v scanning="$scanning" \
+    -v plain="${msg_plain:-0}" \
     -v exact="$_exact" -v aw="$_aw" -v ah="$_ah" -v avail="$_avail" \
     -v fitting="$_fit" -v first="$LIST_FIRST" -v shown="$LIST_SHOWN" \
     -f "$DIR/render.awk" >"$TTY"
@@ -1038,7 +1059,7 @@ while :; do
     sel_row_pane
     [ "$SEL_PANE" = "$_aa" ] && do_attach
   fi
-  render
+  [ -n "$auto_attach" ] || render
   read_key
   _key="$KEY"
   _cnt="${_key#*:}"
@@ -1089,14 +1110,12 @@ while :; do
     ;;
   up)
     dwell=0
-    sel=$((sel - _cnt))
-    clamp
+    wrap_move "-$_cnt"
     msg_clear
     ;;
   down)
     dwell=0
-    sel=$((sel + _cnt))
-    clamp
+    wrap_move "$_cnt"
     msg_clear
     ;;
   pgup | pgdn)

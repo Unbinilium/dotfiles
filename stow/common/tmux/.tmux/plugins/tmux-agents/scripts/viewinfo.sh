@@ -30,9 +30,38 @@ command -v git >/dev/null 2>&1 || exit 0
 NL='
 '
 
-_g="$(git -C "$p" rev-parse --git-dir 2>/dev/null)" || exit 0
-[ -n "$_g" ] || exit 0
-case "$_g" in /*) ;; *) _g="$p/$_g" ;; esac
+_g=''
+if [ -n "${GIT_DIR:-}${GIT_WORK_TREE:-}${GIT_CEILING_DIRECTORIES:-}${GIT_COMMON_DIR:-}" ]; then
+  _g="$(git -C "$p" rev-parse --git-dir 2>/dev/null)" || exit 0
+  [ -n "$_g" ] || exit 0
+  case "$_g" in /*) ;; *) _g="$p/$_g" ;; esac
+else
+  _wd="$p" _up=0
+  while :; do
+    if [ -e "$_wd/.git/HEAD" ] && [ -d "$_wd/.git/objects" ] && [ -d "$_wd/.git/refs" ]; then
+      _g="$_wd/.git"
+      break
+    fi
+    if [ -f "$_wd/.git" ]; then
+      _gl=''
+      IFS= read -r _gl <"$_wd/.git" 2>/dev/null
+      case "$_gl" in
+      'gitdir: '*)
+        _g="${_gl#gitdir: }"
+        case "$_g" in /*) ;; *) _g="$_wd/$_g" ;; esac
+        ;;
+      esac
+      break
+    fi
+    case "$_wd" in */*) ;; *) break ;; esac
+    _nx="${_wd%/*}"
+    [ -n "$_nx" ] && [ "$_nx" != "$_wd" ] || break
+    _wd="$_nx"
+    _up=$((_up + 1))
+    [ "$_up" -lt 24 ] || break
+  done
+  [ -n "$_g" ] || exit 0
+fi
 rp='' lk=0
 if [ -f "$_g/commondir" ]; then
   lk=1

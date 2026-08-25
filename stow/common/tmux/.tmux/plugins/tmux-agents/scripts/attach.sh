@@ -24,7 +24,7 @@ NL='
 
 _all="$(tmux display-message -p -t "$pane" "P$T#{?@agents_owned,1,0}$T#{session_name}" \; \
   display-message -p -t "$win_id" "W$T#{window_index}$T#{window_zoomed_flag}$T#{pane_id}$T#{?automatic-rename,,#{window_name}}" \; \
-  display-message -p -t "=$session:" S \; \
+  display-message -p -t "=$session:" "S$T#{session_name}" \; \
   display-message -p '==OPT==' \; \
   display-message -p "$S#{prefix}$S#{mode-style}$S#{@agents-key}$S#{@agents-readonly}$S#{@agents-glyphs}$S#{@agents-view-style}$S#{@agents-view-keys}$S#{@agents-view-status}$S#{@agents-view-git}$S#{@agents-recenter}$S#{@agents-session-prefix}" \; \
   display-message -p '==KEYS==' \; \
@@ -50,7 +50,7 @@ while IFS= read -r _l; do
   case "$_l" in
   "P$T"*) pane_ln="$_l" ;;
   "W$T"*) win_ln="$_l" ;;
-  S) ses_ok=1 ;;
+  "S$T"*) [ "${_l#S"$T"}" = "$session" ] && ses_ok=1 ;;
   esac
 done <<EOF
 $_all
@@ -74,8 +74,9 @@ o_sprefix="$_opt"
 _r="${pane_ln#P"$T"}"
 pane_owned="${_r%%"$T"*}"
 pane_ses="${_r#*"$T"}"
+[ -n "$pane_ses" ] || exit 3
 if [ "$pane_owned" = 1 ] && [ "$pane_ses" != "$pre_view" ]; then
-  exit 5
+  agents_reclaim "$pane" "$pane_ses" || exit 5
 fi
 [ -n "$win_ln" ] || exit 3
 _r="${win_ln#W"$T"}"
@@ -151,13 +152,13 @@ view_status() { # view_status <view session> <1 if the view has its own keys>
   _pkh="$(agents_fmt_literal "$pk")"
   case "$_pkh" in *,*) _pkh='' ;; esac
   if [ "$2" = 1 ]; then
-    _wide=" $_pkh d back / j jump / q close "
-    _keys="#{?$_narrow, d back / j jump / q close ,$_wide}"
+    _wide=" $_pkh d back / j jump / q close"
+    _keys="#{?$_narrow, d back / j jump / q close,$_wide}"
   elif [ "$ro" = 1 ]; then
-    _wide=" read-only $sep $_pkh d back "
+    _wide=" read-only $sep $_pkh d back"
     _keys="$_wide"
   else
-    _wide=" $_pkh d back / $_pkh $(agents_fmt_literal "$hk") dashboard "
+    _wide=" $_pkh d back / $_pkh $(agents_fmt_literal "$hk") dashboard"
     _keys="$_wide"
   fi
   _rlen=${#_wide}
@@ -170,7 +171,7 @@ view_status() { # view_status <view session> <1 if the view has its own keys>
     set-option -t "$1" status-right-style default \; \
     set-option -t "$1" status-interval 5 \; \
     set-option -t "$1" status-left \
-    " $(agents_fmt_literal "${AGENTS_NAME:-agent}") $sep $(agents_fmt_literal "$_loc")$_info " \; \
+    "$(agents_fmt_literal "${AGENTS_NAME:-agent}") $sep $(agents_fmt_literal "$_loc")$_info " \; \
     set-option -t "$1" status-left-length "$_llen" \; \
     set-option -t "$1" status-right "$_keys" \; \
     set-option -t "$1" status-right-length "$_rlen" \; \

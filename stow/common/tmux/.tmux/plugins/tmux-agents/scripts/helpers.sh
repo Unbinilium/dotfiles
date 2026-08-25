@@ -184,8 +184,10 @@ agents_rows() { # agents_rows <tmux args...> (format must use AGENTS_TAB)
 agents_pane_alive() { [ -n "$(tmux display-message -p -t "$1" '#{pane_id}' 2>/dev/null)" ]; }
 agents_pane_session() { tmux display-message -p -t "$1" '#{session_name}' 2>/dev/null; }
 
-agents_capture_meta() { # agents_capture_meta <pane_id>
-    tmux display-message -p -t "$1" '#{pane_width} #{pane_height}' \; capture-pane -p -e -t "$1" 2>/dev/null
+agents_capture_meta() { # agents_capture_meta <pane_id> -> "W H", title line, capture
+    tmux display-message -p -t "$1" '#{pane_width} #{pane_height}' \; \
+      display-message -p -t "$1" '#{?#{==:#{pane_title},#{host}},,#{pane_title}}' \; \
+      capture-pane -p -e -t "$1" 2>/dev/null
 }
 
 agents_mark_view() { # agents_mark_view <session> <agent_pane> <placeholder> <home_session> <owner_pid> [\; more...]
@@ -240,6 +242,25 @@ agents_restore_pane() { # agents_restore_pane <agent_pane> <placeholder> <view_s
   return 0
 }
 
+agents_reclaim() { # agents_reclaim <agent_pane> <holding session> - take a pane back from an idle view of ours
+  _rcp="$1" _rcv="$2"
+  [ -n "$_rcp" ] && [ -n "$_rcv" ] || return 1
+  _rci="$(tmux display-message -p -t "=$_rcv:" \
+    "#{session_attached}${AGENTS_TAB}#{?@agents_owned,1,0}${AGENTS_TAB}#{@agents_swap}${AGENTS_TAB}#{@agents_home}" 2>/dev/null)"
+  case "$_rci" in *"$AGENTS_TAB"*) ;; *) return 1 ;; esac
+  _rca="${_rci%%"$AGENTS_TAB"*}"; _rci="${_rci#*"$AGENTS_TAB"}"
+  _rco="${_rci%%"$AGENTS_TAB"*}"; _rci="${_rci#*"$AGENTS_TAB"}"
+  _rcs="${_rci%%"$AGENTS_TAB"*}"; _rch="${_rci#*"$AGENTS_TAB"}"
+  [ "$_rca" = 0 ] || return 1
+  [ "$_rco" = 1 ] || return 1
+  [ "${_rcs%% *}" = "$_rcp" ] || return 1
+  case "$_rcs" in *' '*) _rcph="${_rcs#* }" ;; *) return 1 ;; esac
+  agents_restore_pane "$_rcp" "$_rcph" "$_rcv" "$_rch" || return 1
+  tmux kill-session -t "=$_rcv" 2>/dev/null
+  agents_dbg "reclaimed $_rcp from $_rcv"
+  return 0
+}
+
 agents_sweep() { # agents_sweep [<pre-fetched session rows>]
   _now="$(date +%s)"
   _self=$$
@@ -253,12 +274,11 @@ agents_sweep() { # agents_sweep [<pre-fetched session rows>]
     [ "$_a" = 0 ] || continue
     case "$_c" in '' | *[!0-9]*) continue ;; esac
     [ "$((_now - _c))" -ge 15 ] || continue
-    if [ -n "$_own" ] && [ "$_own" != "$_self" ]; then
-      case "$_own" in
-      '' | *[!0-9]*) ;;
-      *) kill -0 "$_own" 2>/dev/null && continue ;;
-      esac
-    fi
+    case "$_own" in
+    '' | *[!0-9]*) ;;
+    "$_self") continue ;;
+    *) kill -0 "$_own" 2>/dev/null && continue ;;
+    esac
     _sap="${_swap%% *}"
     _spp=""
     case "$_swap" in *' '*) _spp="${_swap#* }" ;; esac

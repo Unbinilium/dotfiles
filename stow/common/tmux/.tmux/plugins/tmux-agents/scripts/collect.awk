@@ -18,6 +18,7 @@ BEGIN {
     gsub(/^[ \t]+|[ \t]+$/, "", tt_name[ntt])
     gsub(/^[ \t]+|[ \t]+$/, "", tt_re[ntt])
   }
+  BADSEP = "[" sprintf("%c%c", 9, 31) "]"
   inps = 0
 }
 
@@ -29,7 +30,7 @@ $0 == "==PS==" { inps = 1; next }
   ++np
   p_id[np] = $1; p_pid[np] = $2; p_ses[np] = $3
   p_wix[np] = $4; p_wid[np] = $5; p_stamp[np] = $6
-  p_own[np] = $7; p_swap[np] = $8; p_title[np] = $9; p_cwd[np] = $10
+  p_own[np] = $7; p_swap[np] = $8; p_cwd[np] = $9; p_title[np] = $10
   ses_of[$1] = $3; wix_of[$1] = $4; wid_of[$1] = $5
   next
 }
@@ -45,6 +46,8 @@ inps {
 }
 
 function base(s) { sub(/.*\//, "", s); return s }
+
+function tscrub(t) { gsub(BADSEP, " ", t); return t }
 
 function requote(s) { gsub(/[].[^$(){}|*+?\\\/]/, "\\\\&", s); return s }
 
@@ -133,7 +136,7 @@ function etime_secs(e, dp, hms, n, d, s) {
   return d * 86400 + s
 }
 
-function branch(dir, d, i, f, line, gd) {
+function branch(dir, d, i, f, line, gd, rc) {
   if (dir == "" || dir == "-") return ""
   if (dir in br_seen) return br_seen[dir]
   d = dir
@@ -143,10 +146,10 @@ function branch(dir, d, i, f, line, gd) {
     f = d "/.git/HEAD"
     line = ""
     if ((getline line < f) > 0) { close(f); br_seen[dir] = head_ref(line); break }
-    close(f)
     f = d "/.git"
     line = ""
-    if ((getline line < f) > 0) {
+    rc = (getline line < f)
+    if (rc > 0) {
       close(f)
       if (substr(line, 1, 8) == "gitdir: ") {
         gd = substr(line, 9)
@@ -155,12 +158,10 @@ function branch(dir, d, i, f, line, gd) {
         while (sub(/\/[^\/]+\/\.\.\//, "/", gd)) ;
         wt_seen[dir] = repo_of(gd)
         line = ""
-        if ((getline line < (gd "/HEAD")) > 0) br_seen[dir] = head_ref(line)
-        close(gd "/HEAD")
+        if ((getline line < (gd "/HEAD")) > 0) { close(gd "/HEAD"); br_seen[dir] = head_ref(line) }
       }
       break
     }
-    close(f)
     if (d !~ /\//) break
     sub(/\/[^\/]*$/, "", d)
   }
@@ -204,7 +205,7 @@ END {
       if (!tp) continue
       nm = title_agent(p_title[i])
       if (nm == "") continue
-      print p_id[i], tp, nm, etime_secs(etime[tp]), pcpu[tp], "@" transport_dest(tp), ses, wix, wid, p_stamp[i], ""
+      print p_id[i], tp, nm, etime_secs(etime[tp]), pcpu[tp], "@" transport_dest(tp), ses, wix, wid, p_stamp[i], "", tscrub(p_title[i])
       continue
     }
     nm = agent_name(pid)
@@ -221,6 +222,6 @@ END {
       if (length(rp) > 18) rp = (index(bn, ell "/") == 1) ? "" : ell
       if (rp != "") bn = rp ":" bn
     }
-    print p_id[i], pid, nm, etime_secs(etime[pid]), pcpu[pid], cwd, ses, wix, wid, p_stamp[i], bn
+    print p_id[i], pid, nm, etime_secs(etime[pid]), pcpu[pid], cwd, ses, wix, wid, p_stamp[i], bn, tscrub(p_title[i])
   }
 }
