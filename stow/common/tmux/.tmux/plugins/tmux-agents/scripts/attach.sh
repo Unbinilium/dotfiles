@@ -202,7 +202,9 @@ if [ -n "$pre_view" ] && [ -n "$pre_ph" ] && [ "$pane_ses" = "$pre_view" ]; then
   ph="$pre_ph"
   embedded=1
 else
-  _nv="$(agents_new_view "${o_sprefix:-_agents}_view_$$_$(date +%s)" "$cols" "$lines" 'agent is open in the tmux-agents popup - it returns here on detach')" || exit 4
+  _vsr=1
+  [ "${o_vstat:-on}" = off ] && _vsr=0
+  _nv="$(agents_new_view "${o_sprefix:-_agents}_view_$$_$(date +%s)" "$cols" "$((lines - _vsr))" 'agent is open in the tmux-agents popup - it returns here on detach')" || exit 4
   view="${_nv%% *}"
   ph="${_nv#* }"
 fi

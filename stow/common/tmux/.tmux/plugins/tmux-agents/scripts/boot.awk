@@ -3,7 +3,8 @@ BEGIN {
   sec = "opt"
   nopt = split("o_patterns o_interval o_tick o_stamp o_return o_embed" \
     " o_dwell o_cache o_capture o_busy o_wait o_cpu o_prefix o_recenter" \
-    " o_transports o_titles o_glyphs o_border o_dtime o_bline o_debug", oname, " ")
+    " o_transports o_titles o_glyphs o_border o_dtime o_bline o_debug" \
+    " o_vstat", oname, " ")
 }
 
 function q(s, out, i) {

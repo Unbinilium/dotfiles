@@ -38,11 +38,12 @@ wait${TAB}#{E:@agents-style-waiting}
 wait${TAB}fg=yellow
 idle${TAB}#{E:@agents-style-idle}
 idle${TAB}fg=brightblack"
-OPT_ASK="${SEP}#{@agents-patterns}${SEP}#{@agents-refresh-interval}${SEP}#{@agents-tick}${SEP}#{@agents-stamp-options}${SEP}#{@agents-return-to-dashboard}${SEP}#{@agents-preview-embed}${SEP}#{@agents-preview-dwell}${SEP}#{@agents-preview-cache}${SEP}#{@agents-capture-lines}${SEP}#{@agents-busy-regex}${SEP}#{@agents-waiting-regex}${SEP}#{@agents-cpu-busy}${SEP}#{@agents-session-prefix}${SEP}#{@agents-recenter}${SEP}#{@agents-transports}${SEP}#{@agents-remote-titles}${SEP}#{@agents-glyphs}${SEP}#{@agents-popup-border}${SEP}#{display-time}${SEP}#{popup-border-lines}${SEP}#{@agents-debug}"
+OPT_ASK="${SEP}#{@agents-patterns}${SEP}#{@agents-refresh-interval}${SEP}#{@agents-tick}${SEP}#{@agents-stamp-options}${SEP}#{@agents-return-to-dashboard}${SEP}#{@agents-preview-embed}${SEP}#{@agents-preview-dwell}${SEP}#{@agents-preview-cache}${SEP}#{@agents-capture-lines}${SEP}#{@agents-busy-regex}${SEP}#{@agents-waiting-regex}${SEP}#{@agents-cpu-busy}${SEP}#{@agents-session-prefix}${SEP}#{@agents-recenter}${SEP}#{@agents-transports}${SEP}#{@agents-remote-titles}${SEP}#{@agents-glyphs}${SEP}#{@agents-popup-border}${SEP}#{display-time}${SEP}#{popup-border-lines}${SEP}#{@agents-debug}${SEP}#{@agents-view-status}"
 o_patterns='' o_interval='' o_tick='' o_stamp=''
 o_return='' o_embed='' o_dwell='' o_cache='' o_capture=''
 o_busy='' o_wait='' o_cpu='' o_prefix='' o_recenter=''
 o_transports='' o_titles='' o_glyphs='' o_border='' o_bline='' o_dtime='' o_debug=''
+o_vstat=''
 STYLE_RAW='' SWEEP_ROWS='' CLIENT='' CLIENT_GEO=''
 _sid="${TMUX##*,}"
 case "$_sid" in '' | *[!0-9]*) _sid='' ;; *) _sid="\$$_sid" ;; esac
@@ -74,6 +75,8 @@ dwell_need="$AGENTS_IV"
 agents_int_var "${o_cache:-3}" 3 1 16
 pool_max="$AGENTS_IV"
 recenter="${o_recenter:-on}"
+vstat_rows=1
+[ "${o_vstat:-on}" = off ] && vstat_rows=0
 
 [ "$recenter" = on ] || CLIENT='' CLIENT_GEO=''
 [ -n "$CLIENT_GEO" ] || CLIENT=''
@@ -683,7 +686,8 @@ pool_restore_all() {
 pool_refit() {
   [ -n "$POOL" ] || return 0
   layout
-  [ "$COLS_C" = "$POOL_W" ] && [ "$PREV_ROWS" = "$POOL_H" ] && return 0
+  _vh=$((LINES_C - vstat_rows))
+  [ "$COLS_C" = "$POOL_W" ] && [ "$_vh" = "$POOL_H" ] && return 0
   if [ "$PREV_ROWS" -lt 3 ]; then
     pool_restore_all
     return 0
@@ -692,7 +696,7 @@ pool_refit() {
   for _e in $POOL; do
     eval "_v=\${PV_$_e:-}"
     [ -n "$_v" ] || continue
-    _cmd="$_cmd${_cmd:+ \\; }resize-window -t \"=$_v:\" -x $COLS_C -y $PREV_ROWS"
+    _cmd="$_cmd${_cmd:+ \\; }resize-window -t \"=$_v:\" -x $COLS_C -y $_vh"
   done
   [ -n "$_cmd" ] || return 0
   sel_row_pane
@@ -705,7 +709,7 @@ pool_refit() {
   else
     eval "tmux $_cmd" 2>/dev/null
   fi
-  POOL_W="$COLS_C" POOL_H="$PREV_ROWS"
+  POOL_W="$COLS_C" POOL_H="$_vh"
   return 0
 }
 
@@ -714,13 +718,13 @@ pool_seen_w=0 pool_seen_h=0 pool_held=0
 
 pool_follow() {
   [ -n "$POOL" ] || return 0
-  layout
-  if [ "$COLS_C" = "$POOL_W" ] && [ "$PREV_ROWS" = "$POOL_H" ]; then
+  _vh=$((LINES_C - vstat_rows))
+  if [ "$COLS_C" = "$POOL_W" ] && [ "$_vh" = "$POOL_H" ]; then
     pool_held=0
     return 0
   fi
-  if [ "$COLS_C" != "$pool_seen_w" ] || [ "$PREV_ROWS" != "$pool_seen_h" ]; then
-    pool_seen_w="$COLS_C" pool_seen_h="$PREV_ROWS" pool_held=0
+  if [ "$COLS_C" != "$pool_seen_w" ] || [ "$_vh" != "$pool_seen_h" ]; then
+    pool_seen_w="$COLS_C" pool_seen_h="$_vh" pool_held=0
     return 0
   fi
   pool_held=$((pool_held + 1))
@@ -769,8 +773,7 @@ embed_now() {
   case " $SKIP " in *" $_pn "*) return 0 ;; esac
   pool_refit
   layout
-  _rows="$PREV_ROWS"
-  [ "$_rows" -ge 3 ] || return 0
+  [ "$PREV_ROWS" -ge 3 ] || return 0
   eval "_row=\${ROW_$sel:-}"
   set -f
   IFS="$SEP"
@@ -788,14 +791,15 @@ embed_now() {
   [ "$3" = 1 ] && return 0
   [ "$4" = 1 ] && return 0
   [ "$2" = "$COLS_C" ] && return 0
-  _nv="$(agents_new_view "${prefix}_prev_$$_$_pn" "$COLS_C" "$_rows" 'agent is open in the tmux-agents popup - it returns here shortly')" || return 0
+  _vh=$((LINES_C - vstat_rows))
+  _nv="$(agents_new_view "${prefix}_prev_$$_$_pn" "$COLS_C" "$_vh" 'agent is open in the tmux-agents popup - it returns here shortly')" || return 0
   _view="${_nv%% *}"
   _ph="${_nv#* }"
   [ -n "$_ph" ] || { tmux kill-session -t "=$_view" 2>/dev/null; return 0; }
   agents_mark_view "$_view" "$_p" "$_ph" "$_ses" "$$"
   if _sc="$(tmux swap-pane -d -s "$_p" -t "$_ph" \; capture-pane -p -e -t "$_p" 2>/dev/null)"; then
     eval "PV_$_pn=\$_view PH_$_pn=\$_ph PHOME_$_pn=\$_ses"
-    POOL_W="$COLS_C" POOL_H="$_rows"
+    POOL_W="$COLS_C" POOL_H="$_vh"
     pool_touch "$_pn"
     list_drop "$_pn" "$SKIP"
     SKIP="$LIST_D"
